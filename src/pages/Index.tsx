@@ -3,6 +3,8 @@ import { Building2 } from "lucide-react";
 import { MaintenanceForm } from "@/components/MaintenanceForm";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
 import { NavLink } from "@/components/NavLink";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   MaintenanceInput, 
   MaintenanceResult, 
@@ -15,8 +17,30 @@ const Index = () => {
     result: MaintenanceResult;
   } | null>(null);
 
-  const handleCalculate = (input: MaintenanceInput) => {
+  const handleCalculate = async (input: MaintenanceInput, date: Date) => {
     const calculationResult = calculateMaintenance(input);
+    
+    // Save to database
+    const { error } = await supabase.from("maintenance_history").insert({
+      calculation_date: date.toISOString().split("T")[0],
+      electricity: input.electricity,
+      water: input.water,
+      watchman: input.watchman,
+      garbage: input.garbage,
+      number_of_flats: input.numberOfFlats,
+      total_expense: calculationResult.totalExpense,
+      cost_per_flat: calculationResult.roundedCostPerFlat,
+      total_collected: calculationResult.totalCollected,
+      surplus: calculationResult.surplus,
+    });
+
+    if (error) {
+      toast.error("Failed to save calculation");
+      console.error(error);
+    } else {
+      toast.success("Calculation saved to history");
+    }
+
     setResult({ input, result: calculationResult });
   };
 
@@ -55,6 +79,13 @@ const Index = () => {
               activeClassName="text-primary border-primary"
             >
               Calculator
+            </NavLink>
+            <NavLink
+              to="/history"
+              className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
+              activeClassName="text-primary border-primary"
+            >
+              History
             </NavLink>
             <NavLink
               to="/calendar"

@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { Zap, Droplets, Shield, Trash2, Building2 } from "lucide-react";
+import { Zap, Droplets, Shield, Trash2, Building2, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MaintenanceInput } from "@/lib/calculations";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface MaintenanceFormProps {
-  onCalculate: (input: MaintenanceInput) => void;
+  onCalculate: (input: MaintenanceInput, date: Date) => void;
 }
 
 interface FormField {
@@ -58,6 +62,7 @@ export function MaintenanceForm({ onCalculate }: MaintenanceFormProps) {
     numberOfFlats: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const handleChange = (key: string, value: string) => {
     // Only allow numeric input
@@ -100,16 +105,46 @@ export function MaintenanceForm({ onCalculate }: MaintenanceFormProps) {
       numberOfFlats: parseInt(values.numberOfFlats),
     };
 
-    onCalculate(input);
+    onCalculate(input, selectedDate);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Date Picker */}
+      <div className="animate-slide-up" style={{ animationDelay: '0s', opacity: 0, animationFillMode: 'forwards' }}>
+        <Label className="flex items-center gap-2 text-base font-medium mb-2">
+          <CalendarIcon className="text-primary" />
+          Month
+        </Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDate ? format(selectedDate, "MMMM yyyy") : "Select month"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       {formFields.map((field, index) => (
         <div
           key={field.key}
           className="animate-slide-up"
-          style={{ animationDelay: `${index * 0.05}s`, opacity: 0, animationFillMode: 'forwards' }}
+          style={{ animationDelay: `${(index + 1) * 0.05}s`, opacity: 0, animationFillMode: 'forwards' }}
         >
           <Label
             htmlFor={field.key}
