@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { MaintenanceForm } from "@/components/MaintenanceForm";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
+import { NavLink } from "@/components/NavLink";
 import { 
   MaintenanceInput, 
   MaintenanceResult, 
@@ -43,6 +44,28 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Tab Navigation */}
+      <nav className="bg-background/60 backdrop-blur-sm border-b border-border/30">
+        <div className="container max-w-lg mx-auto px-4">
+          <div className="flex gap-1">
+            <NavLink
+              to="/"
+              className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
+              activeClassName="text-primary border-primary"
+            >
+              Calculator
+            </NavLink>
+            <NavLink
+              to="/calendar"
+              className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
+              activeClassName="text-primary border-primary"
+            >
+              Calendar
+            </NavLink>
+          </div>
+        </div>
+      </nav>
 
       {/* Main Content */}
       <main className="container max-w-lg mx-auto px-4 py-6 pb-12">
