@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      maintenance_history: {
+        Row: {
+          calculation_date: string
+          cost_per_flat: number
+          created_at: string
+          electricity: number
+          garbage: number
+          id: string
+          number_of_flats: number
+          surplus: number
+          total_collected: number
+          total_expense: number
+          watchman: number
+          water: number
+        }
+        Insert: {
+          calculation_date: string
+          cost_per_flat: number
+          created_at?: string
+          electricity: number
+          garbage: number
+          id?: string
+          number_of_flats: number
+          surplus: number
+          total_collected: number
+          total_expense: number
+          watchman: number
+          water: number
+        }
+        Update: {
+          calculation_date?: string
+          cost_per_flat?: number
+          created_at?: string
+          electricity?: number
+          garbage?: number
+          id?: string
+          number_of_flats?: number
+          surplus?: number
+          total_collected?: number
+          total_expense?: number
+          watchman?: number
+          water?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

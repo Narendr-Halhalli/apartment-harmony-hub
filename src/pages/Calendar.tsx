@@ -76,6 +76,13 @@ const CalendarPage = () => {
               Calculator
             </NavLink>
             <NavLink
+              to="/history"
+              className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
+              activeClassName="text-primary border-primary"
+            >
+              History
+            </NavLink>
+            <NavLink
               to="/calendar"
               className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
               activeClassName="text-primary border-primary"
