@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, Trash2, FileSpreadsheet } from "lucide-react";
+import { Building2, Trash2, FileSpreadsheet, Download } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/calculations";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 
 interface HistoryRecord {
   id: string;
@@ -65,6 +66,39 @@ const History = () => {
       toast.success("Record deleted");
       setRecords((prev) => prev.filter((r) => r.id !== id));
     }
+  };
+
+  const handleExport = () => {
+    if (records.length === 0) {
+      toast.error("No records to export");
+      return;
+    }
+
+    const exportData = records.map((record) => ({
+      "Date": format(new Date(record.calculation_date), "MMM yyyy"),
+      "Electricity (₹)": record.electricity,
+      "Water (₹)": record.water,
+      "Watchman (₹)": record.watchman,
+      "Garbage (₹)": record.garbage,
+      "Number of Flats": record.number_of_flats,
+      "Total Expense (₹)": record.total_expense,
+      "Cost per Flat (₹)": record.cost_per_flat,
+      "Total Collected (₹)": record.total_collected,
+      "Surplus (₹)": record.surplus,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Maintenance History");
+
+    // Auto-size columns
+    const colWidths = Object.keys(exportData[0] || {}).map((key) => ({
+      wch: Math.max(key.length + 2, 15),
+    }));
+    worksheet["!cols"] = colWidths;
+
+    XLSX.writeFile(workbook, `maintenance_history_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    toast.success("History exported successfully");
   };
 
   return (
@@ -119,16 +153,22 @@ const History = () => {
 
       {/* Main Content */}
       <main className="container max-w-4xl mx-auto px-4 py-6 pb-12">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="flex items-center justify-center gap-2 mb-2">
+        <div className="flex items-center justify-between mb-8 animate-fade-in">
+          <div className="flex items-center gap-2">
             <FileSpreadsheet className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">
-              Calculation History
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Calculation History
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                View all past maintenance calculations
+              </p>
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            View all past maintenance calculations
-          </p>
+          <Button onClick={handleExport} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export XLSX
+          </Button>
         </div>
 
         <div className="glass-card rounded-3xl p-6 overflow-hidden">
