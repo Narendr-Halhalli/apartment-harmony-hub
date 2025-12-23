@@ -1,10 +1,28 @@
 import { useState } from "react";
-import { Building2, Plus, Calendar as CalendarIcon, Bell } from "lucide-react";
+import { Building2, Plus, Calendar as CalendarIcon, Bell, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface Event {
   id: string;
@@ -16,7 +34,7 @@ interface Event {
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [events] = useState<Event[]>([
+  const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
       title: 'Annual Water Tank Cleaning',
@@ -32,6 +50,39 @@ const CalendarPage = () => {
       description: 'Pay electricity bill'
     }
   ]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    type: "one-time" as "annual" | "monthly" | "one-time",
+  });
+
+  const handleAddEvent = () => {
+    if (!newEvent.title.trim()) {
+      toast.error("Please enter an event title");
+      return;
+    }
+    if (!selectedDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    const event: Event = {
+      id: Date.now().toString(),
+      title: newEvent.title,
+      date: selectedDate,
+      type: newEvent.type,
+    };
+
+    setEvents([...events, event]);
+    setNewEvent({ title: "", type: "one-time" });
+    setIsDialogOpen(false);
+    toast.success("Event added successfully");
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    setEvents(events.filter((e) => e.id !== id));
+    toast.success("Event deleted");
+  };
 
   const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
@@ -41,7 +92,7 @@ const CalendarPage = () => {
     }
   };
 
-  const upcomingEvents = events.slice(0, 3);
+  const sortedEvents = [...events].sort((a, b) => a.date.getTime() - b.date.getTime());
 
   return (
     <div className="min-h-screen hero-gradient">
@@ -125,15 +176,64 @@ const CalendarPage = () => {
                 <Bell className="w-5 h-5 text-primary" />
                 Upcoming Events
               </CardTitle>
-              <Button size="sm" variant="ghost" className="text-primary">
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="ghost" className="text-primary">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Event</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Event Title</Label>
+                      <Input
+                        id="title"
+                        placeholder="Enter event title"
+                        value={newEvent.title}
+                        onChange={(e) =>
+                          setNewEvent({ ...newEvent, title: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Selected Date</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedDate ? format(selectedDate, "PPP") : "No date selected"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Event Type</Label>
+                      <Select
+                        value={newEvent.type}
+                        onValueChange={(value: "annual" | "monthly" | "one-time") =>
+                          setNewEvent({ ...newEvent, type: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="annual">Annual</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="one-time">One-time</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleAddEvent} className="w-full">
+                      Add Event
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event) => (
+            {sortedEvents.length > 0 ? (
+              sortedEvents.map((event) => (
                 <div
                   key={event.id}
                   className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 border border-border/50"
@@ -158,6 +258,14 @@ const CalendarPage = () => {
                       })}
                     </p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDeleteEvent(event.id)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               ))
             ) : (
